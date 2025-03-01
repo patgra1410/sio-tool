@@ -69,7 +69,7 @@ func parseSubmission(body []byte) (ret sio_submissions.Submission, err error) {
 		}
 	} else if strings.Contains(strings.ToLower(status), "błąd") || strings.Contains(strings.ToLower(status), "failed") {
 		status = fmt.Sprintf("${c-failed}%v", status)
-		if points == sio_submissions.Inf {
+		if points == sio_submissions.Inf && !strings.Contains(strings.ToLower(status), "kompilacji") && !strings.Contains(strings.ToLower(status), "compilation") {
 			end = false
 		}
 	} else {
