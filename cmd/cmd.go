@@ -14,6 +14,8 @@ import (
 	"github.com/Arapak/sio-tool/codeforces_client"
 	"github.com/Arapak/sio-tool/config"
 	"github.com/fatih/color"
+
+    "strings"
 )
 
 func Eval(opts docopt.Opts) error {
@@ -209,6 +211,13 @@ func getCode(filename string, templates []config.CodeTemplate, fileExtensions ma
 }
 
 func getOneCode(filename string, templates []config.CodeTemplate, fileExtensions map[string]struct{}) (name string, index int, err error) {
+    cfg := config.Instance
+    tempName := ""
+    if filename != "" && !strings.Contains(filename, ".") {
+        tempName = filename
+        filename = ""
+    }
+
 	codes, err := getCode(filename, templates, fileExtensions)
 	if err != nil {
 		return
@@ -233,16 +242,33 @@ func getOneCode(filename string, templates []config.CodeTemplate, fileExtensions
 	}
 	if len(codes[0].Index) > 1 {
 		langs := make([]string, len(codes[0].Index))
+        gotten := -1
 		for i, idx := range codes[0].Index {
 			langs[i] = codeforces_client.Langs[templates[idx].Lang] + " from " + templates[idx].Alias
+            if tempName != "" && templates[idx].Alias == tempName {
+                gotten = idx
+            }
 		}
-		prompt := &survey.Select{
-			Message: "Multiple languages match the file.",
-			Options: langs,
-		}
-		if err = survey.AskOne(prompt, &codes[0].Index[0]); err != nil {
-			return
-		}
+        if tempName == "" {
+            gotten = cfg.Default
+        }
+        contains := false
+        for _, idx := range codes[0].Index {
+            if idx == gotten {
+                contains = true
+            }
+        }
+        if !contains {
+            prompt := &survey.Select{
+                Message: "Multiple languages match the file.",
+                Options: langs,
+            }
+            if err = survey.AskOne(prompt, &codes[0].Index[0]); err != nil {
+                return
+            }
+        } else {
+            codes[0].Index[0] = gotten
+        }
 	}
 	return codes[0].Name, codes[0].Index[0], nil
 }
