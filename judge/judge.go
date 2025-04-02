@@ -21,12 +21,13 @@ func Judge(inPath, ansPath, sampleID, command string, oiejqOptions *OiejqOptions
 	} else {
 		processInfo, err = RunProcess(command, input, nil)
 	}
-	if err != nil || processInfo.Status != OK {
-		return Verdict{processInfo.Status, processInfo.TimeInSeconds, processInfo.MemoryInMegabytes, "", err}
-	}
-	if err == nil && len(processInfo.Stderr) > 0 { // Check if stderr was captured
+	if len(processInfo.Stderr) > 0 { // Check if stderr was captured
 		fmt.Println(color.New(color.FgCyan).Sprint("-----Stderr-----"))
     	fmt.Fprintln(os.Stderr, "Captured Stderr Output:\n"+string(processInfo.Stderr))
+		fmt.Println(color.New(color.FgCyan).Sprint("----------------"))
+	}
+	if err != nil || processInfo.Status != OK {
+		return Verdict{processInfo.Status, processInfo.TimeInSeconds, processInfo.MemoryInMegabytes, "", err}
 	}
 
 
